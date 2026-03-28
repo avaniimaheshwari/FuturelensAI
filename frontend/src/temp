@@ -1,0 +1,227 @@
+import React, { useState } from "react";
+import {
+  Chart as ChartJS,
+  LineElement,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+} from "chart.js";
+
+import { Line } from "react-chartjs-2";
+
+ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement);
+function App() {
+  const [monthly, setMonthly] = useState(1000);
+  const [years, setYears] = useState(5);
+  const [scenario, setScenario] = useState("sip");
+  const [country, setCountry] = useState("india");
+
+  const [result, setResult] = useState(null);
+  const [compareData, setCompareData] = useState(null);
+
+  // 🔥 CALCULATE
+  const calculate = async () => {
+    try {
+      const res = await fetch(
+        `http://127.0.0.1:8001/calculate?monthly_investment=${monthly}&annual_rate=12&years=${years}&scenario=${scenario}&country=${country}`
+      );
+      const data = await res.json();
+      console.log("CALCULATE:", data);
+      setResult(data);
+    } catch (err) {
+      console.error(err);
+      alert("Backend connection failed");
+    }
+  };
+
+  // 🔥 COMPARE
+  const compare = async () => {
+    try {
+      const res = await fetch(
+        `http://127.0.0.1:8001/compare?monthly_investment=${monthly}&years=${years}&country=${country}`
+      );
+      const data = await res.json();
+      console.log("COMPARE:", data);
+      setCompareData(data);
+    } catch (err) {
+      console.error(err);
+      alert("Backend connection failed");
+    }
+  };
+
+  return (
+    <div style={{
+      background: "#0b1a2b",
+      minHeight: "100vh",
+      padding: "20px",
+      color: "white"
+    }}>
+      <h1>FutureLens AI 🚀</h1>
+
+      {/* INPUTS */}
+      <div style={{ marginBottom: "20px" }}>
+        <input
+          type="number"
+          value={monthly}
+          onChange={(e) => setMonthly(e.target.value)}
+          placeholder="Monthly Investment"
+        />
+
+        <input
+          type="number"
+          value={years}
+          onChange={(e) => setYears(e.target.value)}
+          placeholder="Years"
+          style={{ marginLeft: "10px" }}
+        />
+
+        <br /><br />
+
+        <select value={country} onChange={(e) => setCountry(e.target.value)}>
+          <option value="india">India</option>
+          <option value="us">US</option>
+          <option value="uk">UK</option>
+          <option value="japan">Japan</option>
+        </select>
+
+        <select
+          value={scenario}
+          onChange={(e) => setScenario(e.target.value)}
+          style={{ marginLeft: "10px" }}
+        >
+          <option value="sip">SIP</option>
+          <option value="fd">FD</option>
+          <option value="crypto">Crypto</option>
+        </select>
+
+        <br /><br />
+
+        <button onClick={calculate}>Simulate</button>
+        <button onClick={compare} style={{ marginLeft: "10px" }}>
+          Compare
+        </button>
+      </div>
+
+      {/* 🔥 RESULT */}
+      {result && (
+        <div style={{
+          padding: "20px",
+          background: "#1e2a3a",
+          borderRadius: "10px",
+          marginTop: "20px"
+        }}>
+          <h2>📊 Simulation Result</h2>
+
+          <p><strong>Future Value:</strong> ₹{result.future_value}</p>
+
+          <p><strong>Real Value:</strong> ₹{result.real_value}</p>
+
+          <p><strong>Inflation Rate:</strong> {result.inflation_rate}%</p>
+
+          <p style={{ color: "red" }}>
+            <strong>Inflation Loss:</strong> ₹{result.inflation_loss}
+          </p>
+
+          <p style={{ color: "#00ffcc" }}>
+            <strong>AI Recommendation:</strong> {result.recommendation}
+          </p>
+
+          <p style={{ color: "#00bfff" }}>
+            <strong>News Impact Score:</strong> {result.news_impact}
+          </p>
+          <div style={{ marginTop: "10px", color: "#00ffcc" }}>
+            <strong>📌 Insight:</strong>
+            <p>
+              Real wealth after inflation: ₹{result.real_value}.
+            </p>
+            {/* 📰 NEWS SECTION */}
+            <div style={{ marginTop: "15px" }}>
+              <strong>📰 Market News:</strong>
+
+              {result.news && result.news.length > 0 ? (
+                <ul>
+                  {result.news.map((item, index) => (
+                    <li key={index}>{item}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No news available</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      {result && (
+        <div style={{ marginTop: "20px" }}>
+          <h3>📈 Investment Growth</h3>
+
+          <Line
+            data={{
+              labels: result.yearly_data.map((_, i) => `Year ${i + 1}`),
+              datasets: [
+                {
+                  label: "Growth",
+                  data: result.yearly_data,
+                  borderWidth: 2,
+                },
+              ],
+            }}
+          />
+        </div>
+      )}
+
+      {/* 🔥 STRATEGY BOX */}
+      {compareData && (
+        <div style={{
+          marginTop: "20px",
+          padding: "20px",
+          background: "#1e2a3a",
+          borderRadius: "10px"
+        }}>
+          <h2>🚀 Strategy Intelligence</h2>
+
+          <p>🏆 Best Strategy → {compareData.best_strategy}</p>
+
+          <p>📉 Recession → {compareData.scenario_analysis?.recession}</p>
+          <p>⚖️ Normal → {compareData.scenario_analysis?.normal}</p>
+          <p>📈 Boom → {compareData.scenario_analysis?.boom}</p>
+
+          <div style={{ marginTop: "10px", color: "#ffd700" }}>
+            <p>
+              Markets behave differently under conditions — this shows where each strategy wins.
+            </p>
+            <div style={{ marginTop: "20px" }}>
+              <h3>📊 Strategy Comparison</h3>
+
+              <Line
+                data={{
+                  labels: compareData.sip.map((_, i) => `Year ${i + 1}`),
+                  datasets: [
+                    {
+                      label: "SIP",
+                      data: compareData.sip,
+                      borderWidth: 2,
+                    },
+                    {
+                      label: "FD",
+                      data: compareData.fd,
+                      borderWidth: 2,
+                    },
+                    {
+                      label: "Crypto",
+                      data: compareData.crypto,
+                      borderWidth: 2,
+                    }
+                  ]
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}
+
+export default App;
