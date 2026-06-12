@@ -1,4 +1,4 @@
-# 🚀 FutureLens AI
+#  FutureLens AI
 
 ### *Don’t just invest. Predict your future wealth.*
 
@@ -6,7 +6,7 @@ FutureLens AI is an AI-powered financial intelligence platform that transforms h
 
 ---
 
-## 🌍 Problem
+##  Problem
 
 * Business news in 2026 is still static and generic
 * Same content for all users, no personalization
